@@ -1,0 +1,705 @@
+openapi: 3.0.0
+info:
+  title: API Sistema de Reservas Hoteleras
+  description: API REST para gestión de hoteles, habitaciones, huéspedes y reservas
+  version: 1.0.0
+  contact:
+    name: Equipo de Desarrollo
+    email: desarrollo@hotel.com
+
+servers:
+  - url: http://127.0.0.1:8000/api
+    description: Servidor de desarrollo
+
+tags:
+  - name: Hoteles
+    description: Operaciones relacionadas con hoteles
+  - name: Habitaciones
+    description: Operaciones relacionadas con habitaciones
+  - name: Huéspedes
+    description: Operaciones relacionadas con huéspedes
+  - name: Reservas
+    description: Operaciones relacionadas con reservas
+
+components:
+  schemas:
+    Hotel:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: "Hotel Plaza"
+        direccion:
+          type: string
+          example: "Calle 123 #45-67"
+        ciudad:
+          type: string
+          example: "Bogotá"
+        nit:
+          type: string
+          example: "900123456-1"
+        numero_habitaciones:
+          type: integer
+          example: 50
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Habitacion:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        hotel_id:
+          type: integer
+          example: 1
+        tipo_habitacion:
+          type: string
+          enum: [ESTANDAR, JUNIOR, SUITE]
+          example: "ESTANDAR"
+        acomodacion:
+          type: string
+          enum: [SENCILLA, DOBLE, TRIPLE, CUADRUPLE]
+          example: "DOBLE"
+        capacidad:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 2
+        numero_habitacion:
+          type: string
+          example: "101"
+        disponible:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Huesped:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: "Juan"
+        apellido:
+          type: string
+          example: "Pérez"
+        tipo_documento:
+          type: string
+          enum: [CC, CE, PASAPORTE]
+          example: "CC"
+        documento:
+          type: string
+          example: "12345678"
+        fecha_nacimiento:
+          type: string
+          format: date
+          example: "1990-01-15"
+        genero:
+          type: string
+          enum: [M, F, OTRO]
+          example: "M"
+        telefono:
+          type: string
+          example: "+57 300 123 4567"
+        nacionalidad:
+          type: string
+          example: "Colombiana"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Reserva:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        hotel_id:
+          type: integer
+          example: 1
+        habitacion_id:
+          type: integer
+          example: 1
+        huesped_id:
+          type: integer
+          example: 1
+        fecha_entrada:
+          type: string
+          format: date
+          example: "2024-02-15"
+        fecha_salida:
+          type: string
+          format: date
+          example: "2024-02-18"
+        numero_huespedes:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 2
+        precio_total:
+          type: number
+          format: float
+          example: 450000.00
+        estado:
+          type: string
+          enum: [PENDIENTE, CONFIRMADA, CANCELADA]
+          example: "CONFIRMADA"
+        observaciones:
+          type: string
+          nullable: true
+          example: "Habitación con vista al mar"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operación exitosa"
+        data:
+          type: object
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "The given data was invalid."
+        errors:
+          type: object
+
+paths:
+  # HOTELES
+  /hoteles:
+    get:
+      tags: [Hoteles]
+      summary: Obtener lista de hoteles
+      description: Retorna una lista de todos los hoteles con sus habitaciones
+      responses:
+        '200':
+          description: Lista de hoteles obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Hotel'
+
+    post:
+      tags: [Hoteles]
+      summary: Crear un nuevo hotel
+      description: Crea un nuevo hotel en el sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, direccion, ciudad, nit, numero_habitaciones]
+              properties:
+                nombre:
+                  type: string
+                  maxLength: 255
+                  example: "Hotel Plaza"
+                direccion:
+                  type: string
+                  maxLength: 500
+                  example: "Calle 123 #45-67"
+                ciudad:
+                  type: string
+                  maxLength: 100
+                  example: "Bogotá"
+                nit:
+                  type: string
+                  maxLength: 20
+                  example: "900123456-1"
+                numero_habitaciones:
+                  type: integer
+                  minimum: 1
+                  maximum: 1000
+                  example: 50
+      responses:
+        '201':
+          description: Hotel creado exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Hotel'
+        '422':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /hoteles/{id}:
+    get:
+      tags: [Hoteles]
+      summary: Obtener un hotel específico
+      description: Retorna los detalles de un hotel específico con sus habitaciones
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del hotel
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Hotel obtenido exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Hotel'
+        '404':
+          description: Hotel no encontrado
+
+    put:
+      tags: [Hoteles]
+      summary: Actualizar un hotel
+      description: Actualiza los datos de un hotel existente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del hotel
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+                  maxLength: 255
+                direccion:
+                  type: string
+                  maxLength: 500
+                ciudad:
+                  type: string
+                  maxLength: 100
+                nit:
+                  type: string
+                  maxLength: 20
+                numero_habitaciones:
+                  type: integer
+                  minimum: 1
+                  maximum: 1000
+      responses:
+        '200':
+          description: Hotel actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Hotel no encontrado
+        '422':
+          description: Error de validación
+
+    delete:
+      tags: [Hoteles]
+      summary: Eliminar un hotel
+      description: Elimina un hotel del sistema
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del hotel
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Hotel eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Hotel no encontrado
+
+  /hoteles/{id}/statistics:
+    get:
+      tags: [Hoteles]
+      summary: Obtener estadísticas del hotel
+      description: Retorna estadísticas detalladas de un hotel específico
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del hotel
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Estadísticas obtenidas exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          total_habitaciones:
+                            type: integer
+                          habitaciones_disponibles:
+                            type: integer
+                          habitaciones_ocupadas:
+                            type: integer
+                          tipos_habitacion:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                tipo_habitacion:
+                                  type: string
+                                cantidad:
+                                  type: integer
+        '404':
+          description: Hotel no encontrado
+
+  # HABITACIONES
+  /habitaciones:
+    get:
+      tags: [Habitaciones]
+      summary: Obtener lista de habitaciones
+      description: Retorna una lista de habitaciones con filtros opcionales
+      parameters:
+        - name: hotel_id
+          in: query
+          description: Filtrar por ID del hotel
+          schema:
+            type: integer
+        - name: tipo_habitacion
+          in: query
+          description: Filtrar por tipo de habitación
+          schema:
+            type: string
+            enum: [ESTANDAR, JUNIOR, SUITE]
+        - name: disponible
+          in: query
+          description: Filtrar por disponibilidad
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de habitaciones obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Habitacion'
+
+    post:
+      tags: [Habitaciones]
+      summary: Crear una nueva habitación
+      description: Crea una nueva habitación en el sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [hotel_id, tipo_habitacion, acomodacion, capacidad, numero_habitacion]
+              properties:
+                hotel_id:
+                  type: integer
+                  example: 1
+                tipo_habitacion:
+                  type: string
+                  enum: [ESTANDAR, JUNIOR, SUITE]
+                  example: "ESTANDAR"
+                acomodacion:
+                  type: string
+                  enum: [SENCILLA, DOBLE, TRIPLE, CUADRUPLE]
+                  example: "DOBLE"
+                capacidad:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  example: 2
+                numero_habitacion:
+                  type: string
+                  maxLength: 10
+                  example: "101"
+                disponible:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Habitación creada exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Habitacion'
+        '422':
+          description: Error de validación
+
+  # HUÉSPEDES
+  /huespedes:
+    get:
+      tags: [Huéspedes]
+      summary: Obtener lista de huéspedes
+      description: Retorna una lista de huéspedes con filtros opcionales
+      parameters:
+        - name: search
+          in: query
+          description: Buscar por nombre, apellido o documento
+          schema:
+            type: string
+        - name: tipo_documento
+          in: query
+          description: Filtrar por tipo de documento
+          schema:
+            type: string
+            enum: [CC, CE, PASAPORTE]
+        - name: nacionalidad
+          in: query
+          description: Filtrar por nacionalidad
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de huéspedes obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Huesped'
+
+    post:
+      tags: [Huéspedes]
+      summary: Crear un nuevo huésped
+      description: Registra un nuevo huésped en el sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, apellido, tipo_documento, documento, fecha_nacimiento, genero, telefono, nacionalidad]
+              properties:
+                nombre:
+                  type: string
+                  maxLength: 100
+                  example: "Juan"
+                apellido:
+                  type: string
+                  maxLength: 100
+                  example: "Pérez"
+                tipo_documento:
+                  type: string
+                  enum: [CC, CE, PASAPORTE]
+                  example: "CC"
+                documento:
+                  type: string
+                  maxLength: 20
+                  example: "12345678"
+                fecha_nacimiento:
+                  type: string
+                  format: date
+                  example: "1990-01-15"
+                genero:
+                  type: string
+                  enum: [M, F, OTRO]
+                  example: "M"
+                telefono:
+                  type: string
+                  maxLength: 20
+                  example: "+57 300 123 4567"
+                nacionalidad:
+                  type: string
+                  maxLength: 50
+                  example: "Colombiana"
+      responses:
+        '201':
+          description: Huésped creado exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Huesped'
+        '422':
+          description: Error de validación
+
+  # RESERVAS
+  /reservas:
+    get:
+      tags: [Reservas]
+      summary: Obtener lista de reservas
+      description: Retorna una lista de reservas con filtros opcionales
+      parameters:
+        - name: hotel_id
+          in: query
+          description: Filtrar por ID del hotel
+          schema:
+            type: integer
+        - name: estado
+          in: query
+          description: Filtrar por estado de la reserva
+          schema:
+            type: string
+            enum: [PENDIENTE, CONFIRMADA, CANCELADA]
+        - name: fecha_entrada
+          in: query
+          description: Filtrar por fecha de entrada (mayor o igual)
+          schema:
+            type: string
+            format: date
+        - name: fecha_salida
+          in: query
+          description: Filtrar por fecha de salida (menor o igual)
+          schema:
+            type: string
+            format: date
+        - name: huesped_id
+          in: query
+          description: Filtrar por ID del huésped
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de reservas obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Reserva'
+
+    post:
+      tags: [Reservas]
+      summary: Crear una nueva reserva
+      description: Crea una nueva reserva en el sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [hotel_id, habitacion_id, huesped_id, fecha_entrada, fecha_salida, numero_huespedes, precio_total]
+              properties:
+                hotel_id:
+                  type: integer
+                  example: 1
+                habitacion_id:
+                  type: integer
+                  example: 1
+                huesped_id:
+                  type: integer
+                  example: 1
+                fecha_entrada:
+                  type: string
+                  format: date
+                  example: "2024-02-15"
+                fecha_salida:
+                  type: string
+                  format: date
+                  example: "2024-02-18"
+                numero_huespedes:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  example: 2
+                precio_total:
+                  type: number
+                  format: float
+                  minimum: 0
+                  example: 450000.00
+                observaciones:
+                  type: string
+                  maxLength: 1000
+                  nullable: true
+                  example: "Habitación con vista al mar"
+                huespedes_adicionales:
+                  type: array
+                  items:
+                    type: integer
+                  example: [2, 3]
+      responses:
+        '201':
+          description: Reserva creada exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Reserva'
+        '422':
+          description: Error de validación
