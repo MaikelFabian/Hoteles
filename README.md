@@ -32,7 +32,7 @@ Sistema de gestión hotelera con Laravel (backend) y React + TypeScript (fronten
 
 - **Frontend:** http://localhost:5173
 - **API:** http://localhost:8000/api
-- **Swagger:** http://localhost:8000/api/documentation
+- **Swagger:** http://localhost:8000/documentation
 
 ## 🗄️ Base de Datos
 
