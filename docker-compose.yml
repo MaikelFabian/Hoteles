@@ -1,10 +1,8 @@
 version: '3.8'
 
 services:
-  # Base de datos PostgreSQL
   database:
     image: postgres:15
-    container_name: hotel_db
     environment:
       POSTGRES_DB: hotel
       POSTGRES_USER: postgres
@@ -13,49 +11,25 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - hotel_network
 
-  # Backend Laravel
   backend:
-    build:
-      context: ./Recuperacion
-      dockerfile: Dockerfile
-    container_name: hotel_backend
-    environment:
-      - APP_ENV=production
-      - APP_DEBUG=false
-      - DB_CONNECTION=pgsql
-      - DB_HOST=database
-      - DB_PORT=5432
-      - DB_DATABASE=hotel
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=password
+    image: maikel434/hotel-backend:latest
     ports:
-      - "8000:80"
+      - "8000:8000"
+    environment:
+      DB_HOST: database
+      DB_DATABASE: hotel
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
     depends_on:
       - database
-    volumes:
-      - ./Recuperacion:/var/www/html
-    networks:
-      - hotel_network
 
-  # Frontend React
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: hotel_frontend
+    image: maikel434/hotel-frontend:latest
     ports:
-      - "3000:80"
+      - "5173:5173"
     depends_on:
       - backend
-    networks:
-      - hotel_network
 
 volumes:
   postgres_data:
-
-networks:
-  hotel_network:
-    driver: bridge
