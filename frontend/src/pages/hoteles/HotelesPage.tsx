@@ -116,7 +116,7 @@ const HotelesPage: React.FC = () => {
     {
       key: 'acciones',
       header: 'Acciones',
-      render: (value: any, hotel: Hotel) => (
+      render: (_: any, hotel: Hotel) => (
         <div className="d-flex gap-2">
           <Button 
             size="sm" 

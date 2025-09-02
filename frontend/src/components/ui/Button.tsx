@@ -38,8 +38,12 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled || loading}
       {...props}
     >
-      {loading && <Loader2 className="me-2" size={16} />}
-      {children}
+      <span className="d-flex align-items-center">
+        {loading && (
+          <Loader2 className="me-2" size={16} style={{ animation: 'spin 1s linear infinite' }} />
+        )}
+        {children}
+      </span>
     </button>
   );
 };

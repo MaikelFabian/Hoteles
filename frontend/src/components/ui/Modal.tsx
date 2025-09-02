@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface ModalProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ const Modal: React.FC<ModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <>
       <div className="modal-backdrop fade show" onClick={onClose}></div>
       <div className="modal fade show d-block" tabIndex={-1}>
@@ -50,6 +50,9 @@ const Modal: React.FC<ModalProps> = ({
       </div>
     </>
   );
+
+  // Renderizar el modal usando createPortal para evitar problemas de DOM
+  return createPortal(modalContent, document.body);
 };
 
 export default Modal;
